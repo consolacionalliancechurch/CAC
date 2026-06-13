@@ -9,9 +9,9 @@ const KEYS = ['contact_location','contact_schedule','contact_phone','contact_ema
 
 const DEFAULTS = {
   contact_location: 'Consolacion, Cebu\nPhilippines',
-  contact_schedule: 'Sunday Worship: 8:00 AM',
+  contact_schedule: 'Sunday Worship: 9:00 AM\nPrayer Meeting: Wednesday 7:00 PM\nBible Study: Friday 7:00 PM',
   contact_phone: 'Contact the church office\nfor inquiries and prayer requests',
-  contact_email: 'consolacionalliancechurch@gmail.com',
+  contact_email: 'consolacion.alliance@email.com',
   contact_facebook: '',
   contact_map_embed: '',
 };
@@ -71,7 +71,7 @@ export default function Contact() {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-10">
           <Card className="overflow-hidden">
             <CardContent className="p-0">
-              {get('contact_map_embed') ? (
+              {get('contact_map_embed') && get('contact_map_embed').includes('google.com/maps/embed') ? (
                 <iframe
                   src={get('contact_map_embed')}
                   className="w-full border-0 h-80"
