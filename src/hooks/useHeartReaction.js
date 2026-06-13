@@ -1,28 +1,82 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
-// Stores hearts in localStorage keyed by "hearts_<namespace>_<id>"
+// Gets or creates a persistent anonymous device ID
+function getDeviceId() {
+  let id = localStorage.getItem('cac_device_id');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('cac_device_id', id);
+  }
+  return id;
+}
+
 export function useHeartReaction(namespace, id) {
-  const key = `hearts_${namespace}_${id}`;
-  const countKey = `hearts_count_${namespace}_${id}`;
+  const [hearted, setHearted] = useState(false);
+  const [count, setCount] = useState(0);
+  const deviceId = getDeviceId();
+  const key = `${namespace}_${id}`;
 
-  const [hearted, setHearted] = useState(() => {
-    try { return localStorage.getItem(key) === '1'; } catch { return false; }
-  });
-  const [count, setCount] = useState(() => {
-    try { return parseInt(localStorage.getItem(countKey) || '0'); } catch { return 0; }
-  });
+  // Load count + whether this device has hearted
+  useEffect(() => {
+    if (!namespace || !id) return;
 
-  const toggle = (e) => {
-    e.stopPropagation();
-    const next = !hearted;
-    const nextCount = next ? count + 1 : Math.max(0, count - 1);
-    setHearted(next);
-    setCount(nextCount);
-    try {
-      localStorage.setItem(key, next ? '1' : '0');
-      localStorage.setItem(countKey, String(nextCount));
-    } catch {}
-  };
+    const load = async () => {
+      // Get total count
+      const { count: total } = await supabase
+        .from('reactions')
+        .select('*', { count: 'exact', head: true })
+        .eq('target_key', key);
+
+      // Check if this device already hearted
+      const { data: mine } = await supabase
+        .from('reactions')
+        .select('id')
+        .eq('target_key', key)
+        .eq('device_id', deviceId)
+        .maybeSingle();
+
+      setCount(total || 0);
+      setHearted(!!mine);
+    };
+
+    load();
+
+    // Realtime subscription so all devices update live
+    const channel = supabase
+      .channel(`reactions-${key}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'reactions',
+        filter: `target_key=eq.${key}`,
+      }, () => load())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [namespace, id, key, deviceId]);
+
+  const toggle = useCallback(async (e) => {
+    if (e?.stopPropagation) e.stopPropagation();
+
+    if (hearted) {
+      // Remove heart
+      setHearted(false);
+      setCount(c => Math.max(0, c - 1));
+      await supabase
+        .from('reactions')
+        .delete()
+        .eq('target_key', key)
+        .eq('device_id', deviceId);
+    } else {
+      // Add heart
+      setHearted(true);
+      setCount(c => c + 1);
+      await supabase
+        .from('reactions')
+        .insert({ target_key: key, device_id: deviceId });
+    }
+  }, [hearted, key, deviceId]);
 
   return { hearted, count, toggle };
 }
