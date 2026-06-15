@@ -47,6 +47,7 @@ const AuthenticatedApp = () => {
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/worship-schedule" element={<WorshipSchedule />} />
+        <Route path="/prayer-meeting" element={<WorshipSchedule />} />
         <Route path="/sermons" element={<SermonArchive />} />
         <Route path="/vlogs" element={<Vlogs />} />
         <Route path="/activities" element={<Activities />} />
