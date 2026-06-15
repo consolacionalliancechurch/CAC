@@ -1,28 +1,39 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/lib/supabaseClient';
 import { useQuery } from '@tanstack/react-query';
-import { sermonsService } from '@/services';
 import { format } from 'date-fns';
-import { Search, BookOpen, Play, FileText, Calendar, User, Tag, X, Heart } from 'lucide-react';
+import { Search, BookOpen, Play, FileText, Calendar, User, X, Heart } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useHeartReaction } from '@/hooks/useHeartReaction';
 
+async function fetchSermons() {
+  const { data, error } = await supabase
+    .from('sunday_services')
+    .select('*')
+    .order('date', { ascending: false });
+  if (error) throw error;
+  return data;
+}
 
-function HeartButton({ namespace, id }) {
-  const { hearted, count, toggle } = useHeartReaction(namespace, id);
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: false }; }
+  static getDerivedStateFromError() { return { error: true }; }
+  render() { return this.state.error ? (this.props.fallback || null) : this.props.children; }
+}
+
+function HeartButton({ id }) {
+  const { hearted, count, toggle } = useHeartReaction('sermon', id);
   return (
     <button onClick={toggle}
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border
-        ${hearted
-          ? 'bg-red-50 border-red-200 text-red-500'
-          : 'bg-muted/50 border-border text-muted-foreground hover:border-red-200 hover:text-red-400'
-        }`}>
+        ${hearted ? 'bg-red-50 border-red-200 text-red-500' : 'bg-muted/50 border-border text-muted-foreground hover:border-red-200 hover:text-red-400'}`}>
       <Heart className={`w-4 h-4 transition-all ${hearted ? 'fill-red-500 text-red-500 scale-110' : ''}`} />
       {count > 0 && <span>{count}</span>}
     </button>
   );
 }
 
-/* ── Sermon Detail Modal ── */
+/* ── Detail Modal ── */
 function SermonModal({ sermon, onClose }) {
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
@@ -30,73 +41,53 @@ function SermonModal({ sermon, onClose }) {
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const tags = Array.isArray(sermon.tags) ? sermon.tags : (sermon.tags ? sermon.tags.split(',').map(t => t.trim()) : []);
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="relative bg-background rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Close */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative bg-background rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <button onClick={onClose}
           className="absolute z-10 flex items-center justify-center w-8 h-8 transition rounded-full top-4 right-4 bg-muted hover:bg-muted/80">
           <X className="w-4 h-4" />
         </button>
 
-        <div className="p-7">
-          {/* Title */}
-          <h2 className="pr-8 mb-3 text-2xl font-bold font-heading text-foreground">{sermon.title}</h2>
+        {/* Cover image */}
+        {sermon.speaker_photo && (
+          <div className="relative h-56 overflow-hidden rounded-t-2xl">
+            <img src={sermon.speaker_photo} alt={sermon.speaker_name} className="object-cover w-full h-full"
+              style={{ objectPosition: sermon.speaker_photo_crop ? `${sermon.speaker_photo_crop.x ?? 50}% ${sermon.speaker_photo_crop.y ?? 50}%` : 'center top' }} />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          </div>
+        )}
 
-          {/* Meta row */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground mb-4">
+        <div className="p-7">
+          <h2 className="pr-8 mb-3 text-2xl font-bold font-heading text-foreground">
+            {sermon.topic_title || 'Untitled Sermon'}
+          </h2>
+
+          <div className="flex flex-wrap items-center gap-3 mb-4 text-sm text-muted-foreground">
             {sermon.date && (
               <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" />
+                <Calendar className="w-4 h-4" />
                 {format(new Date(sermon.date), 'MMMM d, yyyy')}
               </span>
             )}
             {sermon.speaker_name && (
               <span className="flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5" />
+                <User className="w-4 h-4" />
                 {sermon.speaker_name}
               </span>
             )}
             {sermon.scripture_reference && (
               <span className="flex items-center gap-1.5 text-primary font-medium">
-                <BookOpen className="w-3.5 h-3.5" />
+                <BookOpen className="w-4 h-4" />
                 {sermon.scripture_reference}
               </span>
             )}
           </div>
 
-          {/* Series badge */}
-          {sermon.series && (
-            <span className="inline-block px-3 py-1 mb-4 text-xs font-medium rounded-full bg-primary/10 text-primary">
-              {sermon.series}
-            </span>
+          {sermon.topic_description && (
+            <p className="mb-6 leading-relaxed text-muted-foreground">{sermon.topic_description}</p>
           )}
 
-          {/* Description */}
-          {sermon.description && (
-            <p className="mb-5 leading-relaxed text-muted-foreground">{sermon.description}</p>
-          )}
-
-          {/* Tags */}
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
-              {tags.map((tag, i) => (
-                <span key={i} className="flex items-center gap-1 text-xs border border-border text-muted-foreground px-2.5 py-1 rounded-full">
-                  <Tag className="w-3 h-3" /> {tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Action buttons */}
           <div className="flex flex-wrap items-center gap-3">
             {sermon.video_url && (
               <a href={sermon.video_url} target="_blank" rel="noopener noreferrer"
@@ -110,7 +101,9 @@ function SermonModal({ sermon, onClose }) {
                 <FileText className="w-4 h-4" /> Download Slides (PDF)
               </a>
             )}
-            <HeartButton namespace="sermon" id={sermon.id} />
+            <ErrorBoundary>
+              <HeartButton id={sermon.id} />
+            </ErrorBoundary>
           </div>
         </div>
       </div>
@@ -120,40 +113,39 @@ function SermonModal({ sermon, onClose }) {
 
 /* ── Sermon Card ── */
 function SermonCard({ sermon, onClick }) {
-  const hasVideo = !!sermon.video_url;
-
   return (
-    <div
-      onClick={onClick}
-      className="overflow-hidden transition-all border bg-card border-border rounded-2xl hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
-    >
-      {/* Thumbnail / placeholder */}
+    <div onClick={onClick}
+      className="overflow-hidden transition-all border bg-card border-border rounded-2xl hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
+
+      {/* Speaker photo or placeholder */}
       <div className="relative flex items-center justify-center w-full overflow-hidden h-44 bg-muted">
-        {sermon.thumbnail ? (
-          <img src={sermon.thumbnail} alt={sermon.title} className="object-cover w-full h-full" />
+        {sermon.speaker_photo ? (
+          <img src={sermon.speaker_photo} alt={sermon.speaker_name} className="object-cover w-full h-full"
+            style={{ objectPosition: sermon.speaker_photo_crop ? `${sermon.speaker_photo_crop.x ?? 50}% ${sermon.speaker_photo_crop.y ?? 50}%` : 'center top' }} />
         ) : (
-          <div className="flex flex-col items-center gap-1 text-muted-foreground/40">
+          <div className="flex flex-col items-center gap-2 text-muted-foreground/40">
             <BookOpen className="w-10 h-10" />
             {sermon.scripture_reference && (
               <span className="text-xs font-medium text-primary/60">{sermon.scripture_reference}</span>
             )}
           </div>
         )}
-        {/* Series badge overlay */}
-        {sermon.series && (
-          <span className="absolute top-3 left-3 text-xs bg-black/60 text-white px-2.5 py-1 rounded-full font-medium backdrop-blur-sm">
-            {sermon.series}
-          </span>
-        )}
-        {/* Video play icon */}
-        {hasVideo && (
-          <div className="absolute flex items-center justify-center rounded-full shadow-lg top-3 right-3 w-9 h-9 bg-primary/90">
+        {/* Overlay gradient */}
+        {sermon.speaker_photo && <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />}
+        {/* Video badge */}
+        {sermon.video_url && (
+          <div className="absolute flex items-center justify-center w-8 h-8 rounded-full shadow top-3 right-3 bg-primary/90">
             <Play className="w-4 h-4 text-white fill-white ml-0.5" />
+          </div>
+        )}
+        {/* PDF badge */}
+        {sermon.slides_pdf && (
+          <div className="absolute flex items-center justify-center w-8 h-8 rounded-full shadow top-3 left-3 bg-red-500/90">
+            <FileText className="w-4 h-4 text-white" />
           </div>
         )}
       </div>
 
-      {/* Card body */}
       <div className="p-5">
         <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground">
           {sermon.date && (
@@ -164,7 +156,9 @@ function SermonCard({ sermon, onClick }) {
           )}
         </div>
 
-        <h3 className="mb-1 text-lg font-bold leading-snug font-heading text-foreground">{sermon.title}</h3>
+        <h3 className="mb-1 text-lg font-bold leading-snug font-heading text-foreground">
+          {sermon.topic_title || 'Untitled Sermon'}
+        </h3>
 
         {sermon.scripture_reference && (
           <p className="flex items-center gap-1.5 text-xs text-primary mb-1">
@@ -172,17 +166,16 @@ function SermonCard({ sermon, onClick }) {
           </p>
         )}
         {sermon.speaker_name && (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
             <User className="w-3 h-3" /> {sermon.speaker_name}
           </p>
         )}
 
-        {sermon.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{sermon.description}</p>
+        {sermon.topic_description && (
+          <p className="mb-3 text-sm text-muted-foreground line-clamp-2">{sermon.topic_description}</p>
         )}
 
-        {/* Footer indicators */}
-        <div className="flex flex-wrap items-center gap-2 mt-3">
+        <div className="flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
           {sermon.video_url && (
             <span className="flex items-center gap-1 text-xs text-primary">
               <Play className="w-3 h-3" /> Video
@@ -193,41 +186,38 @@ function SermonCard({ sermon, onClick }) {
               <FileText className="w-3 h-3" /> Slides PDF
             </span>
           )}
-          <HeartButton namespace="sermon" id={sermon.id} />
+          <ErrorBoundary>
+            <HeartButton id={sermon.id} />
+          </ErrorBoundary>
         </div>
       </div>
     </div>
   );
 }
 
-/* ── Main page ── */
 export default function SermonArchive() {
   const [search, setSearch] = useState('');
-  const [activeSeries, setActiveSeries] = useState('All Series');
   const [selected, setSelected] = useState(null);
 
   const { data: sermons = [], isLoading } = useQuery({
     queryKey: ['sermons'],
-    queryFn: () => sermonsService.list(),
+    queryFn: fetchSermons,
   });
 
-  // Build unique series list
-  const seriesList = ['All Series', ...Array.from(new Set(sermons.map(s => s.series).filter(Boolean)))];
-
   const filtered = sermons.filter(s => {
-    const matchSearch =
-      s.title?.toLowerCase().includes(search.toLowerCase()) ||
-      s.speaker_name?.toLowerCase().includes(search.toLowerCase()) ||
-      s.scripture_reference?.toLowerCase().includes(search.toLowerCase()) ||
-      s.series?.toLowerCase().includes(search.toLowerCase());
-    const matchSeries = activeSeries === 'All Series' || s.series === activeSeries;
-    return matchSearch && matchSeries;
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      s.topic_title?.toLowerCase().includes(q) ||
+      s.speaker_name?.toLowerCase().includes(q) ||
+      s.scripture_reference?.toLowerCase().includes(q)
+    );
   });
 
   return (
     <div className="min-h-screen px-4 pt-24 pb-16 sm:px-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+
         <div className="mb-10">
           <p className="mb-2 text-sm font-medium tracking-widest uppercase text-primary">The Word</p>
           <h1 className="mb-4 text-4xl font-bold font-heading sm:text-5xl text-foreground">Sermon Archive</h1>
@@ -237,53 +227,29 @@ export default function SermonArchive() {
         </div>
 
         {/* Search */}
-        <div className="relative mb-6">
+        <div className="relative mb-8">
           <Search className="absolute w-4 h-4 -translate-y-1/2 left-3 top-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search by title, speaker, or verse..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
+          <input type="text" placeholder="Search by title, speaker, or verse..."
+            value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
 
-        {/* Series filter pills */}
-        {seriesList.length > 1 && (
-          <div className="flex flex-wrap gap-2 mb-8">
-            {seriesList.map(s => (
-              <button key={s} onClick={() => setActiveSeries(s)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
-                  activeSeries === s
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}>
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Count */}
         {!isLoading && (
           <p className="mb-6 text-sm text-muted-foreground">
             {filtered.length} sermon{filtered.length !== 1 ? 's' : ''} found
           </p>
         )}
 
-        {/* Content */}
         {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[1,2,3,4,5,6].map(i => (
               <div key={i} className="overflow-hidden border bg-card border-border rounded-2xl">
                 <Skeleton className="w-full h-44" />
                 <div className="p-5 space-y-3">
-                  <Skeleton className="w-20 h-4 rounded-full" />
+                  <Skeleton className="h-4 w-28" />
                   <Skeleton className="w-3/4 h-6" />
                   <Skeleton className="w-1/2 h-4" />
                   <Skeleton className="w-2/3 h-4" />
-                  <Skeleton className="w-full h-4" />
-                  <Skeleton className="w-5/6 h-4" />
                   <Skeleton className="w-24 h-8 rounded-full" />
                 </div>
               </div>
@@ -293,7 +259,6 @@ export default function SermonArchive() {
           <div className="py-20 text-center">
             <BookOpen className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
             <p className="font-medium text-muted-foreground">No sermons found</p>
-            <p className="text-sm text-muted-foreground">Try a different search term or filter</p>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -304,7 +269,11 @@ export default function SermonArchive() {
         )}
       </div>
 
-      {selected && <SermonModal sermon={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <ErrorBoundary>
+          <SermonModal sermon={selected} onClose={() => setSelected(null)} />
+        </ErrorBoundary>
+      )}
     </div>
   );
 }
