@@ -1,6 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, User as UserIcon, Shield } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { sundayServicesService } from '@/services';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -35,7 +37,13 @@ export default function Navbar() {
     navigate('/');
   };
 
-  const isLive = new Date().getDay() === 0;
+  const isSunday = new Date().getDay() === 0;
+  const { data: upcomingService } = useQuery({
+    queryKey: ['upcoming-service'],
+    queryFn: () => sundayServicesService.getUpcoming(),
+    enabled: isSunday,
+  });
+  const isLive = isSunday && !!upcomingService?.livestream_url;
 
   return (
     <>

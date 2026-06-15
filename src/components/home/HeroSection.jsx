@@ -1,12 +1,23 @@
 ﻿import React from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, User, Play } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isPast, startOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
 
 export default function HeroSection({ nextService }) {
-  const isLive = new Date().getDay() === 0;
+  const today = new Date();
+  const isSunday = today.getDay() === 0;
+
+  // Only show LIVE if it's Sunday AND a livestream URL exists
+  const isLive = isSunday && !!nextService?.livestream_url;
+
+  // Check if service date is in the past
   const serviceDate = nextService?.date ? new Date(nextService.date) : null;
+  const isPastService = serviceDate ? isPast(startOfDay(new Date(serviceDate.getTime() + 24 * 60 * 60 * 1000))) : false;
+
+  // Label changes based on whether it's upcoming or past
+  const messageLabel = isPastService ? "Last Sunday's Message" : "Next Sunday's Message";
+
   const formattedDate = serviceDate ? format(serviceDate, 'MMMM d, yyyy') : 'This Sunday';
 
   return (
@@ -22,7 +33,6 @@ export default function HeroSection({ nextService }) {
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-foreground/20" />
       </div>
 
-      {/* Content — full width, no side gutters that shrink it */}
       <div className="relative z-10 w-full px-6 pt-32 pb-20 sm:px-10 lg:px-16">
         <div className="grid items-center gap-12 lg:grid-cols-2">
 
@@ -40,7 +50,9 @@ export default function HeroSection({ nextService }) {
               )}
             </div>
 
-            <p className="text-background/50 uppercase tracking-[0.25em] text-xs font-medium mb-3">Next Sunday's Message</p>
+            <p className="text-background/50 uppercase tracking-[0.25em] text-xs font-medium mb-3">
+              {messageLabel}
+            </p>
 
             <h1 className="mb-6 text-4xl font-bold leading-tight font-heading sm:text-5xl lg:text-6xl text-background">
               {nextService?.topic_title || 'Coming Soon'}
@@ -95,7 +107,6 @@ export default function HeroSection({ nextService }) {
         </div>
       </div>
 
-      {/* Bottom gradient */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
     </section>
   );
