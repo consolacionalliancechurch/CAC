@@ -3,11 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { supabase } from '@/lib/supabaseClient';
 import { uploadFile } from '@/lib/uploadFile';
-import DeleteConfirmDialog from './DeleteConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, Loader2, X, FileText, CheckCircle, Play, ExternalLink } from 'lucide-react';
-
-const COLUMNS_KEYS = ['date', 'topic_title', 'speaker_name', 'video_url', 'slides_pdf'];
 
 // Fetch sunday services as sermon records
 async function fetchSermonRecords() {
@@ -188,7 +185,6 @@ function EditSermonModal({ open, onClose, record, onSave, isSaving }) {
 export default function SermonsAdmin() {
   const qc = useQueryClient();
   const [editRecord, setEditRecord] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const { data = [], isLoading } = useQuery({
     queryKey: ['sermon-records'],
