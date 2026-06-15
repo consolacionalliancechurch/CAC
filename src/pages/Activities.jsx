@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { activitiesService } from '@/services';
 import { format } from 'date-fns';
@@ -272,8 +273,20 @@ export default function Activities() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-4 rounded-full border-muted border-t-primary animate-spin" />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="overflow-hidden border bg-card border-border rounded-2xl">
+                <Skeleton className="w-full h-52" />
+                <div className="p-5 space-y-3">
+                  <Skeleton className="w-16 h-4 rounded-full" />
+                  <Skeleton className="w-3/4 h-6" />
+                  <Skeleton className="w-1/2 h-4" />
+                  <Skeleton className="w-2/3 h-4" />
+                  <Skeleton className="w-full h-4" />
+                  <Skeleton className="w-5/6 h-4" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center text-muted-foreground">No activities found.</div>

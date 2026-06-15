@@ -1,4 +1,5 @@
 ﻿import React, { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { vlogsService } from '@/services';
 import { motion } from 'framer-motion';
@@ -170,7 +171,18 @@ export default function Vlogs() {
 
         {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[1,2,3].map(i => <div key={i} className="border h-72 bg-card rounded-2xl animate-pulse border-border" />)}
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="overflow-hidden border bg-card border-border rounded-2xl">
+                <Skeleton className="w-full h-52" />
+                <div className="p-5 space-y-3">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="w-3/4 h-6" />
+                  <Skeleton className="w-full h-4" />
+                  <Skeleton className="w-5/6 h-4" />
+                  <Skeleton className="w-24 h-8 rounded-full" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center">

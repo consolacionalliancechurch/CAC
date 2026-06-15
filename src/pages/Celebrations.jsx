@@ -1,4 +1,5 @@
 ﻿import React, { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { celebrationsService } from '@/services';
 import CelebrationCard from '@/components/CelebrationCard';
@@ -57,8 +58,17 @@ export default function Celebrations() {
 
         {/* Content */}
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-4 rounded-full border-muted border-t-primary animate-spin" />
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="overflow-hidden border rounded-2xl border-border bg-card">
+                <Skeleton className="w-full h-64" />
+                <div className="p-5 space-y-3">
+                  <Skeleton className="w-3/4 h-5 mx-auto" />
+                  <Skeleton className="w-1/2 h-4 mx-auto" />
+                  <Skeleton className="w-2/3 h-4 mx-auto" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="py-20 text-center">

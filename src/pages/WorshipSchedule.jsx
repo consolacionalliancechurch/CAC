@@ -1,4 +1,5 @@
 ﻿import React from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { worshipSchedulesService, cellgroupsService } from '@/services';
 import { Clock, MapPin, AlertCircle, Home, Heart, StickyNote } from 'lucide-react';
@@ -129,8 +130,32 @@ export default function WorshipSchedule() {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-4 rounded-full border-muted border-t-primary animate-spin" />
+          <div className="space-y-10">
+            <div className="space-y-3">
+              <Skeleton className="w-48 h-6" />
+              {[1,2].map(i => (
+                <div key={i} className="flex overflow-hidden border rounded-2xl border-border">
+                  <Skeleton className="flex-shrink-0 w-40 h-32" />
+                  <div className="flex-1 p-5 space-y-3">
+                    <Skeleton className="w-20 h-4" />
+                    <Skeleton className="w-1/2 h-6" />
+                    <Skeleton className="w-1/3 h-4" />
+                    <Skeleton className="w-2/3 h-4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-border" />
+            <div className="space-y-3">
+              <Skeleton className="w-48 h-6" />
+              {[1,2,3].map(i => (
+                <div key={i} className="p-5 space-y-3 border rounded-2xl border-border">
+                  <Skeleton className="w-20 h-4" />
+                  <Skeleton className="w-1/3 h-6" />
+                  <Skeleton className="w-1/2 h-4" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="space-y-10">
