@@ -189,16 +189,6 @@ function ServiceModal({ open, onClose, title, form, onChange, onSave, isSaving }
             onChangeCrop={v => onChange('speaker_photo_crop', v)}
           />
 
-          {/* Background Image — draggable */}
-          <DraggablePhotoField
-            label="Background Image"
-            value={form.background_image}
-            crop={form.background_image_crop}
-            folder="backgrounds"
-            onChangeUrl={v => onChange('background_image', v)}
-            onChangeCrop={v => onChange('background_image_crop', v)}
-          />
-
           {/* Livestream URL */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Livestream URL</label>

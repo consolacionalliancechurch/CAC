@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 function IdleHero() {
   return (
     <section className="relative flex items-center min-h-screen overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950" />
-      <div className="absolute inset-0 opacity-10"
-        style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-      <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+      <div className="absolute inset-0">
+        <img src="/church-bg.jpg" alt="Church" className="object-cover w-full h-full" />
+        <div className="absolute inset-0 bg-gradient-to-br from-foreground/80 via-foreground/60 to-foreground/40" />
+      </div>
 
       <div className="relative z-10 flex flex-col items-center justify-center w-full px-6 pt-32 pb-20 text-center sm:px-10 lg:px-16">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
@@ -62,11 +62,7 @@ export default function HeroSection({ nextService }) {
   return (
     <section className="relative flex items-center min-h-screen overflow-hidden">
       <div className="absolute inset-0">
-        {nextService.background_image ? (
-          <img src={nextService.background_image} alt="Church sanctuary" className="object-cover w-full h-full" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-stone-800 to-stone-950" />
-        )}
+        <img src="/church-bg.jpg" alt="Church sanctuary" className="object-cover w-full h-full" />
         <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/60 to-foreground/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-foreground/20" />
       </div>
