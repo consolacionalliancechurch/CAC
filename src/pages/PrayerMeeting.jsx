@@ -1,14 +1,13 @@
 ﻿import React, { useState } from 'react';
-import { worshipSchedulesService, prayerRequestsService } from '@/services';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { prayerRequestsService } from '@/services';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { HandHeart, Send } from 'lucide-react';
 
 const CATEGORIES = ['healing','family','guidance','thanksgiving','financial','spiritual_growth','missions','other'];
 
 export default function PrayerMeeting() {
   const qc = useQueryClient();
-  const [form, setForm] = useState({ name: '', request: '', category: 'other', is_anonymous: false, is_urgent: false });
+  const [form, setForm] = useState({ name: '', request: '', category: 'other', is_anonymous: false });
   const [submitted, setSubmitted] = useState(false);
 
   const { data: requests = [] } = useQuery({
@@ -22,13 +21,12 @@ export default function PrayerMeeting() {
       request: form.request,
       category: form.category,
       is_anonymous: form.is_anonymous,
-      is_urgent: form.is_urgent,
       status: 'pending',
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['prayer-requests-public'] });
       setSubmitted(true);
-      setForm({ name: '', request: '', category: 'other', is_anonymous: false, is_urgent: false });
+      setForm({ name: '', request: '', category: 'other', is_anonymous: false });
     },
     onError: (err) => console.error('Submit failed:', err.message),
   });
@@ -84,11 +82,7 @@ export default function PrayerMeeting() {
                 rows={4}
                 className="w-full px-3 py-2 text-sm border rounded-lg resize-none border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="urgent" checked={form.is_urgent} onChange={e => change('is_urgent', e.target.checked)} className="rounded" />
-                <label htmlFor="urgent" className="text-sm text-muted-foreground">This is urgent</label>
-              </div>
-              <button
+<button
                 onClick={() => submit.mutate()}
                 disabled={!form.request || submit.isPending}
                 className="w-full bg-primary text-primary-foreground rounded-lg py-2.5 text-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-50"
@@ -111,7 +105,6 @@ export default function PrayerMeeting() {
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                     <p className="text-sm font-medium">{r.is_anonymous ? 'Anonymous' : (r.name || 'Anonymous')}</p>
                     <div className="flex gap-2">
-                      {r.is_urgent && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Urgent</span>}
                       <span className="capitalize text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{r.category?.replace('_', ' ')}</span>
                     </div>
                   </div>

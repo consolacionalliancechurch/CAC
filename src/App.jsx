@@ -13,6 +13,7 @@ import Celebrations from '@/pages/Celebrations';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import WorshipSchedule from '@/pages/WorshipSchedule';
+import PrayerMeeting from '@/pages/PrayerMeeting';
 import SermonArchive from '@/pages/SermonArchive';
 import Vlogs from '@/pages/Vlogs';
 import SuperAdmin from '@/pages/admin/SuperAdmin';
@@ -47,7 +48,8 @@ const AuthenticatedApp = () => {
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/worship-schedule" element={<WorshipSchedule />} />
-        <Route path="/prayer-meeting" element={<WorshipSchedule />} />
+        <Route path="/prayer-meeting" element={<PrayerMeeting />} />
+        <Route path="/prayer-request" element={<PrayerMeeting />} />
         <Route path="/sermons" element={<SermonArchive />} />
         <Route path="/vlogs" element={<Vlogs />} />
         <Route path="/activities" element={<Activities />} />

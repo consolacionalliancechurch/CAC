@@ -23,7 +23,6 @@ const FIELDS = [
     { value: 'in_agenda', label: 'In Agenda' },
     { value: 'prayed_for', label: 'Prayed For' },
   ]},
-  { key: 'is_urgent', label: 'Urgent Request', type: 'boolean' },
   { key: 'is_anonymous', label: 'Anonymous', type: 'boolean' },
 ];
 
@@ -36,9 +35,15 @@ const STATUS_COLORS = {
 const COLUMNS = [
   { key: 'name', label: 'Name', render: (v, row) => row.is_anonymous ? 'Anonymous' : (v || '—') },
   { key: 'request', label: 'Request', render: v => v?.substring(0, 50) + (v?.length > 50 ? '...' : '') },
-  { key: 'category', label: 'Category', render: v => v ? <span className="capitalize text-xs bg-muted px-2 py-0.5 rounded-full">{v.replace('_', ' ')}</span> : '—' },
-  { key: 'status', label: 'Status', render: v => <span className={`capitalize text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[v] || 'bg-muted text-muted-foreground'}`}>{v?.replace('_', ' ') || '—'}</span> },
-  { key: 'is_urgent', label: 'Urgent', render: v => v ? <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">Urgent</span> : '—' },
+  { key: 'category', label: 'Category', render: v => v
+    ? <span className="capitalize text-xs bg-muted px-2 py-0.5 rounded-full">{v.replace('_', ' ')}</span>
+    : '—'
+  },
+  { key: 'status', label: 'Status', render: v =>
+    <span className={`capitalize text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[v] || 'bg-muted text-muted-foreground'}`}>
+      {v?.replace('_', ' ') || '—'}
+    </span>
+  },
 ];
 
 export default function PrayerRequestsAdmin() {
@@ -72,16 +77,22 @@ export default function PrayerRequestsAdmin() {
     },
   });
 
-  const openAdd = () => { setForm({ status: 'pending', is_urgent: false, is_anonymous: false }); setEditId(null); setModal(true); };
+  const openAdd = () => { setForm({ status: 'pending', is_anonymous: false }); setEditId(null); setModal(true); };
   const openEdit = row => { setForm({ ...row }); setEditId(row.id); setModal(true); };
   const closeModal = () => { setModal(false); setForm({}); setEditId(null); };
   const change = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
     <>
-      <AdminTable title="Prayer Requests" columns={COLUMNS} data={data} isLoading={isLoading} onAdd={openAdd} onEdit={openEdit} onDelete={setDeleteTarget} />
-      <AdminFormModal open={modal} onClose={closeModal} title={editId ? 'Edit Prayer Request' : 'Add Prayer Request'} fields={FIELDS} data={form} onChange={change} onSave={() => save.mutate()} isSaving={save.isPending} />
-      <DeleteConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={() => del.mutate(deleteTarget.id)} isDeleting={del.isPending} label="this prayer request" />
+      <AdminTable title="Prayer Requests" columns={COLUMNS} data={data} isLoading={isLoading}
+        onAdd={openAdd} onEdit={openEdit} onDelete={setDeleteTarget} />
+      <AdminFormModal open={modal} onClose={closeModal}
+        title={editId ? 'Edit Prayer Request' : 'Add Prayer Request'}
+        fields={FIELDS} data={form} onChange={change}
+        onSave={() => save.mutate()} isSaving={save.isPending} />
+      <DeleteConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}
+        onConfirm={() => del.mutate(deleteTarget.id)} isDeleting={del.isPending}
+        label="this prayer request" />
     </>
   );
 }

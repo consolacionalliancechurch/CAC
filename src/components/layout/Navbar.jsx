@@ -13,6 +13,7 @@ const navLinks = [
   { path: '/vlogs', label: 'Vlogs' },
   { path: '/activities', label: 'Activities' },
   { path: '/celebrations', label: 'Celebrations' },
+  { path: '/prayer-request', label: 'Prayer' },
   { path: '/about', label: 'About' },
   { path: '/contact', label: 'Contact' },
 ];
@@ -56,7 +57,7 @@ export default function Navbar() {
       <nav className={`fixed ${isLive ? 'top-8' : 'top-0'} left-0 right-0 z-40 transition-all duration-500 ${
         scrolled ? 'bg-background/90 backdrop-blur-md shadow-sm' : 'bg-background/80 backdrop-blur-sm'
       }`}>
-        <div className="flex items-center justify-between w-full px-6 py-4">
+        <div className="flex items-center justify-between px-6 py-4 w-full">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="flex items-center justify-center w-10 h-10 overflow-hidden rounded-full">
               <img src="/CACLogo.jpg" alt="CAC Logo" className="object-cover w-full h-full"
