@@ -37,13 +37,11 @@ export default function Navbar() {
     navigate('/');
   };
 
-  const isSunday = new Date().getDay() === 0;
   const { data: upcomingService } = useQuery({
     queryKey: ['upcoming-service'],
     queryFn: () => sundayServicesService.getUpcoming(),
-    enabled: isSunday,
   });
-  const isLive = isSunday && !!upcomingService?.livestream_url;
+  const isLive = !!upcomingService?.livestream_url;
 
   return (
     <>

@@ -49,8 +49,7 @@ export default function HeroSection({ nextService }) {
 
   if (!hasRealData) return <IdleHero />;
 
-  const isSunday = new Date().getDay() === 0;
-  const isLive = isSunday && !!nextService.livestream_url;
+  const isLive = !!nextService.livestream_url;
 
   const serviceDate = nextService.date ? new Date(nextService.date) : null;
   const isPastService = serviceDate
