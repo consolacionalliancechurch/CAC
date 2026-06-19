@@ -40,6 +40,27 @@ const FIELDS = [
     multiline: false,
   },
   {
+    key: 'contact_instagram',
+    label: 'Instagram URL',
+    placeholder: 'https://instagram.com/consolacionalliancechurch',
+    hint: 'Optional — shows an Instagram link button',
+    multiline: false,
+  },
+  {
+    key: 'contact_tiktok',
+    label: 'TikTok URL',
+    placeholder: 'https://tiktok.com/@consolacionalliancechurch',
+    hint: 'Optional — shows a TikTok link button',
+    multiline: false,
+  },
+  {
+    key: 'contact_youtube',
+    label: 'YouTube Channel URL',
+    placeholder: 'https://youtube.com/@consolacionalliancechurch',
+    hint: 'Optional — shows a YouTube link button',
+    multiline: false,
+  },
+  {
     key: 'contact_map_embed',
     label: 'Google Maps Embed URL',
     placeholder: 'https://www.google.com/maps/embed?pb=...',

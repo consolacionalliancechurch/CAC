@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Mail, Clock, Church, Facebook } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Church, Facebook, Instagram, Youtube } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { siteSettingsService } from '@/services';
 
-const KEYS = ['contact_location','contact_schedule','contact_phone','contact_email','contact_facebook','contact_map_embed'];
+const KEYS = ['contact_location','contact_schedule','contact_phone','contact_email','contact_facebook','contact_instagram','contact_tiktok','contact_youtube','contact_map_embed'];
 
 const DEFAULTS = {
   contact_location: 'Consolacion, Cebu\nPhilippines',
@@ -13,6 +13,9 @@ const DEFAULTS = {
   contact_phone: 'Contact the church office\nfor inquiries and prayer requests',
   contact_email: 'consolacion.alliance@email.com',
   contact_facebook: '',
+  contact_instagram: '',
+  contact_tiktok: '',
+  contact_youtube: '',
   contact_map_embed: '',
 };
 
@@ -94,13 +97,37 @@ export default function Contact() {
           </Card>
         </motion.div>
 
-        {/* Facebook link */}
-        {get('contact_facebook') && (
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="flex justify-center mb-10">
-            <a href={get('contact_facebook')} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-medium hover:opacity-90 transition">
-              <Facebook className="w-4 h-4" /> Follow us on Facebook
-            </a>
+        {/* Social links */}
+        {(get('contact_facebook') || get('contact_instagram') || get('contact_tiktok') || get('contact_youtube')) && (
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            className="flex flex-wrap justify-center gap-3 mb-10">
+            {get('contact_facebook') && (
+              <a href={get('contact_facebook')} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1877F2] text-white text-sm font-medium hover:opacity-90 transition">
+                <Facebook className="w-4 h-4" /> Facebook
+              </a>
+            )}
+            {get('contact_instagram') && (
+              <a href={get('contact_instagram')} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-tr from-[#FEDA75] via-[#D62976] to-[#962FBF] text-white text-sm font-medium hover:opacity-90 transition">
+                <Instagram className="w-4 h-4" /> Instagram
+              </a>
+            )}
+            {get('contact_tiktok') && (
+              <a href={get('contact_tiktok')} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white transition bg-black rounded-xl hover:opacity-90">
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
+                  <path d="M16.6 5.82a4.28 4.28 0 0 1-.95-2.65h-3.06v13.6a2.6 2.6 0 1 1-1.85-2.49V11.2a5.6 5.6 0 1 0 4.91 5.56V9.36a7.3 7.3 0 0 0 4.25 1.36V7.66a4.28 4.28 0 0 1-3.3-1.84Z"/>
+                </svg>
+                TikTok
+              </a>
+            )}
+            {get('contact_youtube') && (
+              <a href={get('contact_youtube')} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FF0000] text-white text-sm font-medium hover:opacity-90 transition">
+                <Youtube className="w-4 h-4" /> YouTube
+              </a>
+            )}
           </motion.div>
         )}
 
