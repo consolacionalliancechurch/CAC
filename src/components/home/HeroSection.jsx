@@ -15,8 +15,8 @@ function IdleHero() {
       <div className="relative z-10 flex flex-col items-center justify-center w-full px-6 pt-32 pb-20 text-center sm:px-10 lg:px-16">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
           className="max-w-2xl">
-          <div className="flex items-center justify-center w-20 h-20 mx-auto mb-8 border rounded-full bg-primary/20 border-primary/30">
-            <Church className="w-9 h-9 text-primary" />
+          <div className="flex items-center justify-center w-20 h-20 mx-auto mb-8 overflow-hidden border rounded-full bg-primary/20 border-primary/30">
+            <img src="/CACLogo.jpg" alt="Church Logo" className="object-cover w-full h-full" />
           </div>
           <p className="text-background/50 uppercase tracking-[0.25em] text-xs font-medium mb-4">Consolacion Alliance Church</p>
           <h1 className="mb-6 text-4xl font-bold leading-tight font-heading sm:text-5xl lg:text-6xl text-background">

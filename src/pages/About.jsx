@@ -56,8 +56,8 @@ export default function About() {
       <section className="px-6 mb-24">
         <div className="max-w-3xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10">
-              <Church className="w-8 h-8 text-primary" />
+            <div className="flex items-center justify-center mx-auto mb-6 overflow-hidden rounded-full w-28 h-28 bg-primary/10">
+              <img src="/CACLogo.jpg" alt="Church Logo" className="object-cover w-full h-full" />
             </div>
             <h2 className="mb-6 text-3xl font-bold font-heading text-foreground">About CAMACOP</h2>
             <p className="mb-4 text-lg leading-relaxed text-muted-foreground">
