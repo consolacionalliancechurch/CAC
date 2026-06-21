@@ -20,26 +20,49 @@ const COLUMNS = [
 function PhotoField({ value, onChange }) {
   const inputRef = useRef();
   const [uploading, setUploading] = useState(false);
+  const [localPreview, setLocalPreview] = useState(null);
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Show instant local preview before upload finishes
+    const objectUrl = URL.createObjectURL(file);
+    setLocalPreview(objectUrl);
+
     setUploading(true);
     try {
       const url = await uploadFile(file, 'pastors');
       onChange(url);
-    } finally { setUploading(false); e.target.value = ''; }
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+      URL.revokeObjectURL(objectUrl);
+      setLocalPreview(null);
+    }
   };
+
+  const displayImage = localPreview || value;
 
   return (
     <div className="space-y-2">
-      {value && (
-        <div className="relative mx-auto overflow-hidden border-2 rounded-full w-28 h-28 border-border">
-          <img src={value} alt="" className="object-cover w-full h-full" />
-          <button type="button" onClick={() => onChange('')}
-            className="absolute flex items-center justify-center w-5 h-5 text-white transition rounded-full top-1 right-1 bg-black/60 hover:bg-red-500">
-            <X className="w-3 h-3" />
-          </button>
+      {displayImage && (
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground">Preview — matches how it appears on the About page</p>
+          <div className="relative w-full max-w-[220px] mx-auto h-72 rounded-xl overflow-hidden border-2 border-border bg-muted">
+            <img src={displayImage} alt="" className="object-cover w-full h-full" />
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <Loader2 className="w-6 h-6 text-white animate-spin" />
+              </div>
+            )}
+            {!uploading && value && (
+              <button type="button" onClick={() => onChange('')}
+                className="absolute flex items-center justify-center w-6 h-6 text-white transition rounded-full top-2 right-2 bg-black/60 hover:bg-red-500">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       )}
       <div className="flex gap-2">

@@ -23,15 +23,22 @@ function PhotoField({ value, crop, onChangeUrl, onChangeCrop }) {
   const imgRef = useRef();
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [localPreview, setLocalPreview] = useState(null);
 
   // Keep all drag state in a ref so callbacks never go stale
   const drag = useRef({ active: false, startX: 0, startY: 0, startObjX: 50, startObjY: 50 });
 
   const pos = { x: 50, y: 50, scale: 1, ...(crop || {}) };
+  const displayImage = localPreview || value;
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Instant local preview before upload finishes
+    const objectUrl = URL.createObjectURL(file);
+    setLocalPreview(objectUrl);
+
     setUploading(true);
     try {
       const url = await uploadFile(file, 'celebrations');
@@ -40,6 +47,8 @@ function PhotoField({ value, crop, onChangeUrl, onChangeCrop }) {
     } finally {
       setUploading(false);
       e.target.value = '';
+      URL.revokeObjectURL(objectUrl);
+      setLocalPreview(null);
     }
   };
 
@@ -75,11 +84,12 @@ function PhotoField({ value, crop, onChangeUrl, onChangeCrop }) {
 
   return (
     <div className="space-y-2">
-      {value ? (
+      {displayImage ? (
         <div className="space-y-2">
-          {/* Draggable preview */}
+          <p className="text-xs text-center text-muted-foreground">Preview — matches the round photo on Celebrations</p>
+          {/* Draggable circular preview — matches real CelebrationCard (w-32 h-32 rounded-full) */}
           <div
-            className={`relative w-full h-48 rounded-xl overflow-hidden border border-border bg-muted select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            className={`relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-white shadow-lg bg-muted select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -87,7 +97,7 @@ function PhotoField({ value, crop, onChangeUrl, onChangeCrop }) {
           >
             <img
               ref={imgRef}
-              src={value}
+              src={displayImage}
               alt="preview"
               draggable={false}
               style={{
@@ -101,20 +111,29 @@ function PhotoField({ value, crop, onChangeUrl, onChangeCrop }) {
                 transition: isDragging ? 'none' : 'transform 0.1s',
               }}
             />
-            <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full pointer-events-none">
-              <Move className="w-3 h-3" /> Drag to adjust
-            </div>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onChangeUrl(''); onChangeCrop(null); }}
-              className="absolute z-10 flex items-center justify-center w-6 h-6 text-white transition rounded-full top-2 right-2 bg-black/60 hover:bg-red-500"
-            >
-              <X className="w-3 h-3" />
-            </button>
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
+              </div>
+            )}
+            {!uploading && value && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onChangeUrl(''); onChangeCrop(null); }}
+                className="absolute z-10 flex items-center justify-center w-5 h-5 text-white transition rounded-full top-1 right-1 bg-black/60 hover:bg-red-500"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
+          {!uploading && (
+            <p className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+              <Move className="w-3 h-3" /> Drag the photo to adjust
+            </p>
+          )}
 
           {/* Zoom controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center max-w-xs gap-2 mx-auto">
             <span className="text-xs text-muted-foreground">Zoom:</span>
             <button type="button" onClick={() => zoom(-0.1)}
               className="flex items-center justify-center transition border rounded w-7 h-7 border-border hover:bg-muted">
@@ -134,10 +153,10 @@ function PhotoField({ value, crop, onChangeUrl, onChangeCrop }) {
       ) : (
         <div
           onClick={() => inputRef.current?.click()}
-          className="flex flex-col items-center justify-center w-full h-32 gap-2 transition border-2 border-dashed cursor-pointer rounded-xl border-border hover:border-primary/50 text-muted-foreground hover:text-primary bg-muted/20">
+          className="flex flex-col items-center justify-center w-32 h-32 gap-2 mx-auto transition border-2 border-dashed rounded-full cursor-pointer border-border hover:border-primary/50 text-muted-foreground hover:text-primary bg-muted/20">
           {uploading
             ? <Loader2 className="w-6 h-6 animate-spin" />
-            : <><Upload className="w-6 h-6" /><span className="text-sm">Click to upload photo</span></>
+            : <><Upload className="w-5 h-5" /><span className="px-2 text-xs text-center">Click to upload</span></>
           }
         </div>
       )}

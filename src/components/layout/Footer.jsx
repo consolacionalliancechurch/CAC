@@ -25,7 +25,7 @@ export default function Footer() {
                 { path: '/', label: 'Home' },
                 { path: '/worship-schedule', label: 'Worship Schedule' },
                 { path: '/sermons', label: 'Sermon Archive' },
-                { path: '/prayer-meeting', label: 'Prayer Meetings' },
+                { path: '/prayer-request', label: 'Prayer Request' },
                 { path: '/activities', label: 'Activities' },
                 { path: '/celebrations', label: 'Celebrations' },
                 { path: '/about', label: 'About Us' },

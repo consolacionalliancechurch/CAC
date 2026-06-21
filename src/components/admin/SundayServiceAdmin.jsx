@@ -19,17 +19,24 @@ const COLUMNS = [
 ];
 
 /* ── Reusable draggable photo field ── */
-function DraggablePhotoField({ label, value, crop, folder, onChangeUrl, onChangeCrop }) {
+function DraggablePhotoField({ label, value, crop, folder, onChangeUrl, onChangeCrop, previewShape = 'wide' }) {
   const inputRef = useRef();
   const drag = useRef({ active: false, startX: 0, startY: 0, startObjX: 50, startObjY: 50 });
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [localPreview, setLocalPreview] = useState(null);
 
   const pos = { x: 50, y: 50, scale: 1, ...(crop || {}) };
+  const displayImage = localPreview || value;
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Instant local preview before upload finishes
+    const objectUrl = URL.createObjectURL(file);
+    setLocalPreview(objectUrl);
+
     setUploading(true);
     try {
       const url = await uploadFile(file, folder);
@@ -38,6 +45,8 @@ function DraggablePhotoField({ label, value, crop, folder, onChangeUrl, onChange
     } finally {
       setUploading(false);
       e.target.value = '';
+      URL.revokeObjectURL(objectUrl);
+      setLocalPreview(null);
     }
   };
 
@@ -59,21 +68,29 @@ function DraggablePhotoField({ label, value, crop, folder, onChangeUrl, onChange
 
   const zoom = (delta) => onChangeCrop({ ...pos, scale: Math.max(1, Math.min(3, +(pos.scale + delta).toFixed(1))) });
 
+  // Portrait shape matches the actual hero speaker card (w-64 h-80 = 4:5 ratio)
+  const shapeClass = previewShape === 'portrait'
+    ? 'w-full max-w-[220px] mx-auto h-72'
+    : 'w-full h-44';
+
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-medium">{label}</label>
       <div className="space-y-2">
-        {value ? (
+        {displayImage ? (
           <>
+            {previewShape === 'portrait' && (
+              <p className="text-xs text-muted-foreground">Preview — matches how it appears on the homepage</p>
+            )}
             <div
-              className={`relative w-full h-44 rounded-xl overflow-hidden border border-border bg-muted select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+              className={`relative rounded-xl overflow-hidden border border-border bg-muted select-none ${shapeClass} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
             >
               <img
-                src={value}
+                src={displayImage}
                 alt="preview"
                 draggable={false}
                 style={{
@@ -86,14 +103,23 @@ function DraggablePhotoField({ label, value, crop, folder, onChangeUrl, onChange
                   transition: isDragging ? 'none' : 'transform 0.1s',
                 }}
               />
-              <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full pointer-events-none">
-                <Move className="w-3 h-3" /> Drag to adjust
-              </div>
-              <button type="button"
-                onClick={(e) => { e.stopPropagation(); onChangeUrl(''); onChangeCrop(null); }}
-                className="absolute z-10 flex items-center justify-center w-6 h-6 text-white transition rounded-full top-2 right-2 bg-black/60 hover:bg-red-500">
-                <X className="w-3 h-3" />
-              </button>
+              {!uploading && (
+                <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full pointer-events-none">
+                  <Move className="w-3 h-3" /> Drag to adjust
+                </div>
+              )}
+              {uploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                </div>
+              )}
+              {!uploading && value && (
+                <button type="button"
+                  onClick={(e) => { e.stopPropagation(); onChangeUrl(''); onChangeCrop(null); }}
+                  className="absolute z-10 flex items-center justify-center w-6 h-6 text-white transition rounded-full top-2 right-2 bg-black/60 hover:bg-red-500">
+                  <X className="w-3 h-3" />
+                </button>
+              )}
             </div>
 
             {/* Zoom controls */}
@@ -185,6 +211,7 @@ function ServiceModal({ open, onClose, title, form, onChange, onSave, isSaving }
             value={form.speaker_photo}
             crop={form.speaker_photo_crop}
             folder="speakers"
+            previewShape="portrait"
             onChangeUrl={v => onChange('speaker_photo', v)}
             onChangeCrop={v => onChange('speaker_photo_crop', v)}
           />
