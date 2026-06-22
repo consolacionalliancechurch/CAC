@@ -1,35 +1,84 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { orgChartService } from '@/services';
 import { User } from 'lucide-react';
 
-function OrgNode({ name, role, photo, highlight = false, delay = 0 }) {
+/* ── Recursive node renderer ── */
+function TreeNode({ node, childrenMap, depth = 0 }) {
+  const children = childrenMap[node.id] || [];
+  const hasChildren = children.length > 0;
+
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay }}
-      className="flex flex-col items-center gap-2 min-w-[120px]">
-      <div className={`w-16 h-16 rounded-full overflow-hidden border-2 flex items-center justify-center shrink-0
-        ${highlight ? 'border-primary' : 'border-border'}
-        ${!photo ? (highlight ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground') : ''}`}>
-        {photo ? <img src={photo} alt={name} className="object-cover w-full h-full" /> : <User className="w-6 h-6" />}
-      </div>
-      <div className="text-center">
-        <p className={`font-heading font-bold text-sm leading-tight ${highlight ? 'text-primary' : 'text-foreground'}`}>{name}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{role}</p>
-      </div>
-    </motion.div>
+    <div className="flex flex-col items-center">
+      {/* Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: Math.min(depth * 0.05, 0.3) }}
+        className="flex flex-col items-center gap-2 px-2"
+      >
+        <div className={`rounded-full overflow-hidden border-2 flex items-center justify-center shrink-0
+          ${depth === 0 ? 'w-20 h-20 border-primary' : 'w-14 h-14 border-border'}
+          ${!node.photo ? (depth === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground') : ''}`}>
+          {node.photo
+            ? <img src={node.photo} alt={node.name} className="object-cover w-full h-full"
+                style={{ objectPosition: node.photo_crop ? `${node.photo_crop.x ?? 50}% ${node.photo_crop.y ?? 50}%` : 'center' }} />
+            : <User className={depth === 0 ? 'w-8 h-8' : 'w-5 h-5'} />}
+        </div>
+        <div className="text-center max-w-[140px]">
+          <p className={`font-heading font-bold leading-tight ${depth === 0 ? 'text-base text-primary' : 'text-sm text-foreground'}`}>
+            {node.name}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">{node.role}</p>
+        </div>
+      </motion.div>
+
+      {/* Connector + children */}
+      {hasChildren && (
+        <div className="flex flex-col items-center mt-2">
+          {/* vertical line down from parent */}
+          <div className="w-px h-6 bg-border" />
+
+          {/* horizontal line spanning children, with vertical drops */}
+          <div className="relative flex items-start">
+            {children.length > 1 && (
+              <div className="absolute top-0 left-0 right-0 h-px bg-border"
+                style={{ marginLeft: '10%', marginRight: '10%' }} />
+            )}
+            <div className="flex items-start gap-8">
+              {children.map(child => (
+                <div key={child.id} className="flex flex-col items-center">
+                  <div className="w-px h-4 bg-border" />
+                  <TreeNode node={child} childrenMap={childrenMap} depth={depth + 1} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
 export default function OrgChart() {
-  const { data: members = [], isLoading } = useQuery({
+  const { data: nodes = [], isLoading } = useQuery({
     queryKey: ['org-chart'],
     queryFn: () => orgChartService.list(),
   });
 
-  const head = members.find(m => m.level === 1);
-  const level2 = members.filter(m => m.level === 2);
-  const ministries = members.filter(m => m.level === 3);
+  const childrenMap = useMemo(() => {
+    const map = {};
+    for (const n of nodes) {
+      const key = n.parent_id || 'root';
+      if (!map[key]) map[key] = [];
+      map[key].push(n);
+    }
+    return map;
+  }, [nodes]);
+
+  const roots = childrenMap['root'] || [];
 
   return (
     <section className="px-6 mb-24">
@@ -43,58 +92,14 @@ export default function OrgChart() {
           <div className="flex justify-center py-10">
             <div className="w-8 h-8 border-4 rounded-full border-muted border-t-primary animate-spin" />
           </div>
-        ) : members.length === 0 ? (
+        ) : roots.length === 0 ? (
           <p className="text-center text-muted-foreground">No org chart members added yet.</p>
         ) : (
           <div className="pb-4 overflow-x-auto">
-            <div className="min-w-[640px]">
-
-              {/* Level 1 — Head */}
-              {head && (
-                <>
-                  <div className="flex justify-center mb-6">
-                    <OrgNode name={head.name} role={head.role} photo={head.photo} highlight delay={0} />
-                  </div>
-                  <div className="flex justify-center mb-0">
-                    <div className="w-px h-8 bg-border" />
-                  </div>
-                </>
-              )}
-
-              {/* Level 2 */}
-              {level2.length > 0 && (
-                <>
-                  <div className="relative flex justify-center gap-6 mb-10 sm:gap-10">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[calc(100%-80px)] border-t border-border -mt-0 hidden sm:block" />
-                    {level2.map((node, i) => (
-                      <div key={node.id} className="flex flex-col items-center">
-                        <div className="w-px h-6 mb-2 bg-border" />
-                        <OrgNode name={node.name} role={node.role} photo={node.photo} delay={0.1 + i * 0.07} />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-center mb-0">
-                    <div className="w-px h-8 bg-border" />
-                  </div>
-                </>
-              )}
-
-              {/* Level 3 — Ministries */}
-              {ministries.length > 0 && (
-                <>
-                  <div className="flex justify-center mb-4">
-                    <span className="px-4 py-1 text-xs tracking-widest uppercase border rounded-full text-muted-foreground border-border bg-background">
-                      Ministry Leaders
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-6 mt-2 sm:grid-cols-3 lg:grid-cols-6">
-                    {ministries.map((node, i) => (
-                      <OrgNode key={node.id} name={node.name} role={node.role} photo={node.photo} delay={0.2 + i * 0.06} />
-                    ))}
-                  </div>
-                </>
-              )}
-
+            <div className="flex justify-center gap-16 px-8 min-w-fit">
+              {roots.map(root => (
+                <TreeNode key={root.id} node={root} childrenMap={childrenMap} depth={0} />
+              ))}
             </div>
           </div>
         )}
