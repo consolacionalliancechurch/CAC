@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { Shield, Sun, Activity, Heart, BookOpen, Users, CalendarDays, Video, UserCircle, GitBranch, Home, ImageIcon, Phone } from 'lucide-react';
+import { Shield, Sun, Activity, Heart, BookOpen, Users, CalendarDays, Video, UserCircle, GitBranch, Home, ImageIcon, Phone, IdCard } from 'lucide-react';
 import SundayServiceAdmin from '@/components/admin/SundayServiceAdmin';
 import ActivitiesAdmin from '@/components/admin/ActivitiesAdmin';
 import CelebrationsAdmin from '@/components/admin/CelebrationsAdmin';
@@ -12,6 +12,7 @@ import OrgChartAdmin from '@/components/admin/OrgChartAdmin';
 import CellgroupsAdmin from '@/components/admin/CellgroupsAdmin';
 import AboutSettingsAdmin from '@/components/admin/AboutSettingsAdmin';
 import ContactAdmin from '@/components/admin/ContactAdmin';
+import MembersAdmin from '@/components/admin/MembersAdmin';
 
 const TABS = [
   { value: 'sunday',       label: 'Sunday Service',  icon: Sun },
@@ -26,6 +27,7 @@ const TABS = [
   { value: 'orgchart',     label: 'Org Chart',        icon: GitBranch },
   { value: 'about',        label: 'About Images',     icon: ImageIcon },
   { value: 'contact',      label: 'Contact Info',     icon: Phone },
+  { value: 'members',      label: 'Members',          icon: IdCard },
 ];
 
 export default function SuperAdmin() {
@@ -72,6 +74,7 @@ export default function SuperAdmin() {
           {active === 'orgchart'     && <OrgChartAdmin />}
           {active === 'about'        && <AboutSettingsAdmin />}
           {active === 'contact'      && <ContactAdmin />}
+          {active === 'members'      && <MembersAdmin />}
         </div>
       </div>
     </div>
