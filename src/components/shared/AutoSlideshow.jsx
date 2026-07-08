@@ -15,7 +15,7 @@ export default function AutoSlideshow({ photos = [], className = '', interval = 
   if (!photos.length) return null;
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div className={`relative overflow-hidden bg-muted ${className}`}>
       <AnimatePresence mode="wait">
         <motion.img
           key={current}
@@ -25,11 +25,11 @@ export default function AutoSlideshow({ photos = [], className = '', interval = 
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -30 }}
           transition={{ duration: 0.6 }}
-          className="w-full h-full object-cover absolute inset-0"
+          className="absolute inset-0 object-cover w-full h-full"
         />
       </AnimatePresence>
       {photos.length > 1 && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+        <div className="absolute z-10 flex gap-1 -translate-x-1/2 bottom-2 left-1/2">
           {photos.map((_, i) => (
             <button
               key={i}
