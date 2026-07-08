@@ -9,3 +9,4 @@ export { pastorsService }          from './pastors';
 export { orgChartService }         from './orgChart';
 export { cellgroupsService }       from './cellgroups';
 export { siteSettingsService }     from './siteSettings';
+export { membersService }          from './members';
