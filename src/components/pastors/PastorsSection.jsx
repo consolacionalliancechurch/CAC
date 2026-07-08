@@ -33,9 +33,10 @@ export default function PastorsSection() {
               <motion.div key={pastor.id} initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.12 }}>
                 <div className="overflow-hidden transition-all duration-300 border bg-card border-border rounded-2xl hover:shadow-xl">
                   {/* Photo */}
-                  <div className="relative flex items-center justify-center overflow-hidden h-72 bg-gradient-to-br from-primary/10 to-secondary/10">
+                  <div className="relative flex items-center justify-center overflow-hidden h-96 bg-gradient-to-br from-primary/10 to-secondary/10">
                     {pastor.photo ? (
-                      <img src={pastor.photo} alt={pastor.name} className="object-cover w-full h-full" />
+                      <img src={pastor.photo} alt={pastor.name} className="object-cover w-full h-full"
+                        style={{ objectPosition: pastor.photo_crop ? `${pastor.photo_crop.x ?? 50}% ${pastor.photo_crop.y ?? 0}%` : 'center top' }} />
                     ) : (
                       <div className="flex flex-col items-center gap-3 text-muted-foreground/40">
                         <div className="flex items-center justify-center w-24 h-24 rounded-full bg-muted/60">
