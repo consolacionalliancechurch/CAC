@@ -5,7 +5,7 @@ import { uploadFile } from '@/lib/uploadFile';
 import AdminTable from './AdminTable';
 import DeleteConfirmDialog from './DeleteConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, Loader2, X } from 'lucide-react';
+import { Upload, Loader2, X, ZoomIn, ZoomOut, Move } from 'lucide-react';
 
 const COLUMNS = [
   { key: 'photo', label: 'Photo', render: v => v
@@ -17,23 +17,32 @@ const COLUMNS = [
   { key: 'sort_order', label: 'Order' },
 ];
 
-function PhotoField({ value, onChange }) {
+/* ── Draggable / zoomable rectangular photo field ── */
+function PhotoField({ value, crop, onChangeUrl, onChangeCrop }) {
   const inputRef = useRef();
   const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [localPreview, setLocalPreview] = useState(null);
+
+  // Keep all drag state in a ref so callbacks never go stale
+  const drag = useRef({ active: false, startX: 0, startY: 0, startObjX: 50, startObjY: 0 });
+
+  const pos = { x: 50, y: 0, scale: 1, ...(crop || {}) };
+  const displayImage = localPreview || value;
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Show instant local preview before upload finishes
+    // Instant local preview before upload finishes
     const objectUrl = URL.createObjectURL(file);
     setLocalPreview(objectUrl);
 
     setUploading(true);
     try {
       const url = await uploadFile(file, 'pastors');
-      onChange(url);
+      onChangeUrl(url);
+      onChangeCrop({ x: 50, y: 0, scale: 1 });
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -42,31 +51,117 @@ function PhotoField({ value, onChange }) {
     }
   };
 
-  const displayImage = localPreview || value;
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    drag.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      startObjX: pos.x,
+      startObjY: pos.y,
+    };
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!drag.current.active) return;
+    // Each pixel of movement = 0.3% shift in object-position (feels natural)
+    const sensitivity = 0.3;
+    const newX = Math.max(0, Math.min(100, drag.current.startObjX - (e.clientX - drag.current.startX) * sensitivity));
+    const newY = Math.max(0, Math.min(100, drag.current.startObjY - (e.clientY - drag.current.startY) * sensitivity));
+    onChangeCrop({ ...pos, x: newX, y: newY });
+  };
+
+  const handleMouseUp = () => {
+    drag.current.active = false;
+    setIsDragging(false);
+  };
+
+  const zoom = (delta) => {
+    onChangeCrop({ ...pos, scale: Math.max(1, Math.min(3, +(pos.scale + delta).toFixed(1))) });
+  };
 
   return (
     <div className="space-y-2">
-      {displayImage && (
-        <div className="space-y-1.5">
-          <p className="text-xs text-muted-foreground">Preview — matches how it appears on the About page</p>
-          <div className="relative w-full max-w-[220px] mx-auto h-72 rounded-xl overflow-hidden border-2 border-border bg-muted">
-            <img src={displayImage} alt="" className="object-cover w-full h-full" />
+      {displayImage ? (
+        <div className="space-y-2">
+          <p className="text-xs text-center text-muted-foreground">Preview — matches how it appears on the About page</p>
+          {/* Draggable rectangular preview — matches real PastorsSection card (w-full h-96) */}
+          <div
+            className={`relative w-full max-w-[260px] mx-auto h-80 rounded-xl overflow-hidden border-2 border-border bg-muted select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
+            <img
+              src={displayImage}
+              alt="preview"
+              draggable={false}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: `${pos.x}% ${pos.y}%`,
+                transform: `scale(${pos.scale})`,
+                transformOrigin: `${pos.x}% ${pos.y}%`,
+                pointerEvents: 'none',
+                transition: isDragging ? 'none' : 'transform 0.1s',
+              }}
+            />
             {uploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                <Loader2 className="w-6 h-6 text-white animate-spin" />
+                <Loader2 className="w-5 h-5 text-white animate-spin" />
               </div>
             )}
             {!uploading && value && (
-              <button type="button" onClick={() => onChange('')}
-                className="absolute flex items-center justify-center w-6 h-6 text-white transition rounded-full top-2 right-2 bg-black/60 hover:bg-red-500">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onChangeUrl(''); onChangeCrop(null); }}
+                className="absolute z-10 flex items-center justify-center w-6 h-6 text-white transition rounded-full top-2 right-2 bg-black/60 hover:bg-red-500"
+              >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
+          {!uploading && (
+            <p className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+              <Move className="w-3 h-3" /> Drag the photo to adjust
+            </p>
+          )}
+
+          {/* Zoom controls */}
+          <div className="flex items-center max-w-xs gap-2 mx-auto">
+            <span className="text-xs text-muted-foreground">Zoom:</span>
+            <button type="button" onClick={() => zoom(-0.1)}
+              className="flex items-center justify-center transition border rounded w-7 h-7 border-border hover:bg-muted">
+              <ZoomOut className="w-3.5 h-3.5" />
+            </button>
+            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div className="h-full transition-all rounded-full bg-primary"
+                style={{ width: `${((pos.scale - 1) / 2) * 100}%` }} />
+            </div>
+            <button type="button" onClick={() => zoom(0.1)}
+              className="flex items-center justify-center transition border rounded w-7 h-7 border-border hover:bg-muted">
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+            <span className="w-8 text-xs text-right text-muted-foreground">{pos.scale.toFixed(1)}x</span>
+          </div>
+        </div>
+      ) : (
+        <div
+          onClick={() => inputRef.current?.click()}
+          className="flex flex-col items-center justify-center w-full max-w-[260px] h-80 gap-2 mx-auto transition border-2 border-dashed rounded-xl cursor-pointer border-border hover:border-primary/50 text-muted-foreground hover:text-primary bg-muted/20">
+          {uploading
+            ? <Loader2 className="w-6 h-6 animate-spin" />
+            : <><Upload className="w-5 h-5" /><span className="px-2 text-xs text-center">Click to upload</span></>
+          }
         </div>
       )}
+
+      {/* URL + Upload button */}
       <div className="flex gap-2">
-        <input type="text" value={value || ''} onChange={e => onChange(e.target.value)}
+        <input type="text" value={value || ''} onChange={e => onChangeUrl(e.target.value)}
           placeholder="Paste photo URL..."
           className="flex-1 px-3 py-2 text-sm border rounded-lg border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring" />
         <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading}
@@ -100,7 +195,12 @@ function PastorModal({ open, onClose, title, form, onChange, onSave, isSaving })
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Photo</label>
-            <PhotoField value={form.photo} onChange={v => onChange('photo', v)} />
+            <PhotoField
+              value={form.photo}
+              crop={form.photo_crop}
+              onChangeUrl={v => onChange('photo', v)}
+              onChangeCrop={v => onChange('photo_crop', v)}
+            />
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Bio</label>
