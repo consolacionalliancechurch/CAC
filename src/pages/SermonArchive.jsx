@@ -51,10 +51,9 @@ function SermonModal({ sermon, onClose }) {
 
         {/* Cover image */}
         {sermon.speaker_photo && (
-          <div className="relative h-56 overflow-hidden rounded-t-2xl">
-            <img src={sermon.speaker_photo} alt={sermon.speaker_name} className="object-cover w-full h-full"
-              style={{ objectPosition: sermon.speaker_photo_crop ? `${sermon.speaker_photo_crop.x ?? 50}% ${sermon.speaker_photo_crop.y ?? 50}%` : 'center top' }} />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="relative w-full overflow-hidden rounded-t-2xl bg-muted">
+            <img src={sermon.speaker_photo} alt={sermon.speaker_name}
+              className="object-contain w-full max-h-[500px] mx-auto" />
           </div>
         )}
 
@@ -118,10 +117,9 @@ function SermonCard({ sermon, onClick }) {
       className="overflow-hidden transition-all border bg-card border-border rounded-2xl hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
 
       {/* Speaker photo or placeholder */}
-      <div className="relative flex items-center justify-center w-full overflow-hidden h-44 bg-muted">
+      <div className="relative flex items-center justify-center w-full overflow-hidden aspect-[1890/2048] bg-muted">
         {sermon.speaker_photo ? (
-          <img src={sermon.speaker_photo} alt={sermon.speaker_name} className="object-cover w-full h-full"
-            style={{ objectPosition: sermon.speaker_photo_crop ? `${sermon.speaker_photo_crop.x ?? 50}% ${sermon.speaker_photo_crop.y ?? 50}%` : 'center top' }} />
+          <img src={sermon.speaker_photo} alt={sermon.speaker_name} className="object-cover w-full h-full" />
         ) : (
           <div className="flex flex-col items-center gap-2 text-muted-foreground/40">
             <BookOpen className="w-10 h-10" />
@@ -244,7 +242,7 @@ export default function SermonArchive() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[1,2,3,4,5,6].map(i => (
               <div key={i} className="overflow-hidden border bg-card border-border rounded-2xl">
-                <Skeleton className="w-full h-44" />
+                <Skeleton className="w-full aspect-[1890/2048]" />
                 <div className="p-5 space-y-3">
                   <Skeleton className="h-4 w-28" />
                   <Skeleton className="w-3/4 h-6" />
