@@ -12,6 +12,7 @@ import Activities from '@/pages/Activities';
 import Celebrations from '@/pages/Celebrations';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import WorshipSchedule from '@/pages/WorshipSchedule';
 import PrayerMeeting from '@/pages/PrayerMeeting';
 import SermonArchive from '@/pages/SermonArchive';
@@ -56,6 +57,7 @@ const AuthenticatedApp = () => {
         <Route path="/celebrations" element={<Celebrations />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
         {/* Admin panel — protected, but still inside AppLayout */}
         <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />

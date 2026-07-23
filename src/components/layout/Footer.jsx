@@ -61,6 +61,9 @@ export default function Footer() {
           <p className="flex items-center justify-center gap-1 text-xs text-background/40">
             Made with <Heart className="w-3 h-3 text-primary" /> by Consolacion Alliance Church © {new Date().getFullYear()}
           </p>
+          <Link to="/privacy-policy" className="inline-block mt-2 text-xs transition-colors text-background/40 hover:text-primary">
+            Privacy Policy
+          </Link>
         </div>
       </div>
     </footer>

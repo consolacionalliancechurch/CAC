@@ -57,7 +57,7 @@ function CardSlideshow({ images, cover }) {
   );
 
   return (
-    <div className="relative w-full overflow-hidden h-52">
+    <div className="relative w-full overflow-hidden h-52 bg-muted">
       {all.map((src, i) => (
         <img key={i} src={src} alt=""
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === idx ? 'opacity-100' : 'opacity-0'}`} />
@@ -93,7 +93,7 @@ function ModalSlideshow({ images }) {
   if (!images.length) return null;
 
   return (
-    <div className="relative w-full overflow-hidden bg-black h-72 rounded-t-2xl group">
+    <div className="relative w-full overflow-hidden bg-muted h-72 rounded-t-2xl group">
       {images.map((src, i) => (
         <img key={i} src={src} alt=""
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === idx ? 'opacity-100' : 'opacity-0'}`} />

@@ -1,14 +1,36 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { prayerRequestsService } from '@/services';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { HandHeart, Send } from 'lucide-react';
 
 const CATEGORIES = ['healing','family','guidance','thanksgiving','financial','spiritual_growth','missions','other'];
 
+// Anti-spam: minimum seconds between submissions, tracked per-browser.
+const COOLDOWN_SECONDS = 60;
+const COOLDOWN_KEY = 'cac_prayer_last_submit';
+
+function getRemainingCooldown() {
+  try {
+    const last = Number(localStorage.getItem(COOLDOWN_KEY) || 0);
+    const elapsed = (Date.now() - last) / 1000;
+    return Math.max(0, Math.ceil(COOLDOWN_SECONDS - elapsed));
+  } catch {
+    return 0;
+  }
+}
+
 export default function PrayerMeeting() {
   const qc = useQueryClient();
-  const [form, setForm] = useState({ name: '', request: '', category: 'other', is_anonymous: false });
+  const [form, setForm] = useState({ name: '', request: '', category: 'other', is_anonymous: false, website: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [cooldown, setCooldown] = useState(getRemainingCooldown);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => setCooldown(getRemainingCooldown()), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
 
   const { data: requests = [] } = useQuery({
     queryKey: ['prayer-requests-public'],
@@ -16,17 +38,27 @@ export default function PrayerMeeting() {
   });
 
   const submit = useMutation({
-    mutationFn: () => prayerRequestsService.submit({
-      name: form.is_anonymous ? null : form.name,
-      request: form.request,
-      category: form.category,
-      is_anonymous: form.is_anonymous,
-      status: 'pending',
-    }),
+    mutationFn: () => {
+      // Honeypot: real visitors never see or fill this field. If it's
+      // filled, it's almost certainly a bot — pretend to succeed without
+      // actually writing anything.
+      if (form.website) {
+        return Promise.resolve({ skipped: true });
+      }
+      return prayerRequestsService.submit({
+        name: form.is_anonymous ? null : form.name,
+        request: form.request,
+        category: form.category,
+        is_anonymous: form.is_anonymous,
+        status: 'pending',
+      });
+    },
     onSuccess: () => {
+      try { localStorage.setItem(COOLDOWN_KEY, String(Date.now())); } catch {}
+      setCooldown(COOLDOWN_SECONDS);
       qc.invalidateQueries({ queryKey: ['prayer-requests-public'] });
       setSubmitted(true);
-      setForm({ name: '', request: '', category: 'other', is_anonymous: false });
+      setForm({ name: '', request: '', category: 'other', is_anonymous: false, website: '' });
     },
     onError: (err) => console.error('Submit failed:', err.message),
   });
@@ -53,6 +85,18 @@ export default function PrayerMeeting() {
           <div className="p-6 mb-10 border bg-card border-border rounded-2xl">
             <h2 className="mb-4 text-lg font-bold font-heading">Submit a Prayer Request</h2>
             <div className="space-y-4">
+              {/* Honeypot — hidden from real visitors via CSS, invisible to screen readers,
+                  but bots that auto-fill every field will trip it. */}
+              <input
+                type="text"
+                name="website"
+                value={form.website}
+                onChange={e => change('website', e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', opacity: 0 }}
+              />
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="anon" checked={form.is_anonymous} onChange={e => change('is_anonymous', e.target.checked)} className="rounded" />
                 <label htmlFor="anon" className="text-sm text-muted-foreground">Keep my name anonymous</label>
@@ -82,13 +126,21 @@ export default function PrayerMeeting() {
                 rows={4}
                 className="w-full px-3 py-2 text-sm border rounded-lg resize-none border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
               />
+              <p className="text-xs text-center text-muted-foreground">
+                By submitting, you agree to our{' '}
+                <Link to="/privacy-policy" className="underline hover:text-primary">Privacy Policy</Link>.
+              </p>
 <button
                 onClick={() => submit.mutate()}
-                disabled={!form.request || submit.isPending}
+                disabled={!form.request || submit.isPending || cooldown > 0}
                 className="w-full bg-primary text-primary-foreground rounded-lg py-2.5 text-sm font-medium flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-50"
               >
                 <Send className="w-4 h-4" />
-                {submit.isPending ? 'Submitting...' : 'Submit Prayer Request'}
+                {submit.isPending
+                  ? 'Submitting...'
+                  : cooldown > 0
+                    ? `Please wait ${cooldown}s before submitting again`
+                    : 'Submit Prayer Request'}
               </button>
             </div>
           </div>
