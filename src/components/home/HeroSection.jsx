@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, User, Play, Church } from 'lucide-react';
+import { Calendar, User, Play, Church, BookOpen } from 'lucide-react';
 import { format, isPast, startOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
 
@@ -87,6 +87,12 @@ export default function HeroSection({ nextService }) {
             <h1 className="mb-6 text-4xl font-bold leading-tight font-heading sm:text-5xl lg:text-6xl text-background">
               {nextService.topic_title}
             </h1>
+
+            {nextService.scripture_reference && (
+              <p className="flex items-center gap-2 mb-4 text-sm font-medium text-primary">
+                <BookOpen className="w-4 h-4" /> {nextService.scripture_reference}
+              </p>
+            )}
 
             <p className="max-w-lg mb-8 text-lg leading-relaxed text-background/60">
               {nextService.topic_description || 'Join us every Sunday as we gather to worship, learn, and grow together in faith.'}

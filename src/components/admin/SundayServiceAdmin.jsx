@@ -189,6 +189,14 @@ function ServiceModal({ open, onClose, title, form, onChange, onSave, isSaving }
               className="w-full px-3 py-2 text-sm border rounded-lg border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
 
+          {/* Scripture Reference */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Scripture Reference</label>
+            <input type="text" value={form.scripture_reference || ''} onChange={e => onChange('scripture_reference', e.target.value)}
+              placeholder="e.g. John 3:16"
+              className="w-full px-3 py-2 text-sm border rounded-lg border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring" />
+          </div>
+
           {/* Description */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Description</label>
@@ -205,15 +213,26 @@ function ServiceModal({ open, onClose, title, form, onChange, onSave, isSaving }
               className="w-full px-3 py-2 text-sm border rounded-lg border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
 
-          {/* Speaker Photo — draggable */}
+          {/* Speaker Photo — draggable, homepage hero only */}
           <DraggablePhotoField
-            label="Speaker Photo"
+            label="Speaker Photo (Homepage Hero only)"
             value={form.speaker_photo}
             crop={form.speaker_photo_crop}
             folder="speakers"
             previewShape="portrait"
             onChangeUrl={v => onChange('speaker_photo', v)}
             onChangeCrop={v => onChange('speaker_photo_crop', v)}
+          />
+
+          {/* Sermon Photo — draggable, Sermons page only, fully separate from the speaker photo above */}
+          <DraggablePhotoField
+            label="Sermon Photo (Sermons page only)"
+            value={form.sermon_thumbnail}
+            crop={form.sermon_thumbnail_crop}
+            folder="sermons/thumbnails"
+            previewShape="portrait"
+            onChangeUrl={v => onChange('sermon_thumbnail', v)}
+            onChangeCrop={v => onChange('sermon_thumbnail_crop', v)}
           />
 
           {/* Livestream URL */}

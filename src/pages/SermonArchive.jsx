@@ -49,11 +49,16 @@ function SermonModal({ sermon, onClose }) {
           <X className="w-4 h-4" />
         </button>
 
-        {/* Cover image */}
-        {sermon.speaker_photo && (
+        {/* Cover image — sermon-specific photo only, independent from the homepage speaker photo */}
+        {sermon.sermon_thumbnail && (
           <div className="relative w-full overflow-hidden rounded-t-2xl bg-muted">
-            <img src={sermon.speaker_photo} alt={sermon.speaker_name}
-              className="object-contain w-full max-h-[500px] mx-auto" />
+            <img src={sermon.sermon_thumbnail} alt={sermon.topic_title}
+              className="object-contain w-full max-h-[500px] mx-auto"
+              style={{
+                objectPosition: sermon.sermon_thumbnail_crop
+                  ? `${sermon.sermon_thumbnail_crop.x ?? 50}% ${sermon.sermon_thumbnail_crop.y ?? 50}%`
+                  : 'center'
+              }} />
           </div>
         )}
 
@@ -116,10 +121,15 @@ function SermonCard({ sermon, onClick }) {
     <div onClick={onClick}
       className="overflow-hidden transition-all border bg-card border-border rounded-2xl hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
 
-      {/* Speaker photo or placeholder */}
+      {/* Sermon photo (independent from homepage speaker photo) or placeholder */}
       <div className="relative flex items-center justify-center w-full overflow-hidden aspect-[1890/2048] bg-muted">
-        {sermon.speaker_photo ? (
-          <img src={sermon.speaker_photo} alt={sermon.speaker_name} className="object-cover w-full h-full" />
+        {sermon.sermon_thumbnail ? (
+          <img src={sermon.sermon_thumbnail} alt={sermon.topic_title} className="object-cover w-full h-full"
+            style={{
+              objectPosition: sermon.sermon_thumbnail_crop
+                ? `${sermon.sermon_thumbnail_crop.x ?? 50}% ${sermon.sermon_thumbnail_crop.y ?? 50}%`
+                : 'center'
+            }} />
         ) : (
           <div className="flex flex-col items-center gap-2 text-muted-foreground/40">
             <BookOpen className="w-10 h-10" />
@@ -129,7 +139,7 @@ function SermonCard({ sermon, onClick }) {
           </div>
         )}
         {/* Overlay gradient */}
-        {sermon.speaker_photo && <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />}
+        {sermon.sermon_thumbnail && <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />}
         {/* Video badge */}
         {sermon.video_url && (
           <div className="absolute flex items-center justify-center w-8 h-8 rounded-full shadow top-3 right-3 bg-primary/90">
