@@ -4,7 +4,6 @@ export { activitiesService }       from './activities';
 export { vlogsService }            from './vlogs';
 export { celebrationsService }     from './celebrations';
 export { prayerRequestsService }   from './prayerRequests';
-export { worshipSchedulesService } from './worshipSchedule';
 export { pastorsService }          from './pastors';
 export { orgChartService }         from './orgChart';
 export { cellgroupsService }       from './cellgroups';

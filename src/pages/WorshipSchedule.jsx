@@ -1,11 +1,24 @@
 ﻿import React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
-import { worshipSchedulesService, cellgroupsService } from '@/services';
-import { Clock, MapPin, AlertCircle, Home, Heart, StickyNote } from 'lucide-react';
+import { cellgroupsService, activitiesService } from '@/services';
+import { Clock, MapPin, Home, Heart, Calendar, Activity } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { format, startOfDay, isBefore, isSameDay, addDays } from 'date-fns';
 import { useHeartReaction } from '@/hooks/useHeartReaction';
 
 const DAY_ORDER = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+const categoryColors = {
+  youth:      'bg-blue-50 text-blue-600 border-blue-200',
+  women:      'bg-pink-50 text-pink-600 border-pink-200',
+  men:        'bg-indigo-50 text-indigo-600 border-indigo-200',
+  worship:    'bg-primary/10 text-primary border-primary/20',
+  outreach:   'bg-green-50 text-green-700 border-green-200',
+  missions:   'bg-amber-50 text-amber-700 border-amber-200',
+  fellowship: 'bg-teal-50 text-teal-600 border-teal-200',
+  general:    'bg-orange-50 text-orange-600 border-orange-200',
+};
 
 function HeartButton({ namespace, id }) {
   const { hearted, count, toggle } = useHeartReaction(namespace, id);
@@ -22,60 +35,47 @@ function HeartButton({ namespace, id }) {
   );
 }
 
-function ScheduleCard({ schedule }) {
-  const hasCover = !!schedule.cover_image;
-
+function EventCard({ event, isToday, isTomorrow }) {
+  const color = categoryColors[event.category] || categoryColors.general;
   return (
-    <div className={`relative overflow-hidden rounded-2xl border ${schedule.fellowship_cancelled ? 'border-amber-300' : 'border-border'} bg-card`}>
-      <div className="flex min-h-[120px]">
-        {/* Left: content */}
-        <div className="z-10 flex-1 p-5">
-          {schedule.fellowship_cancelled && (
-            <div className="flex items-center gap-2 px-2 py-1 mb-2 text-xs font-medium border rounded-lg text-amber-600 bg-amber-50 border-amber-200 w-fit">
-              <AlertCircle className="w-3.5 h-3.5" />
-              Cancelled{schedule.fellowship_cancel_reason ? `: ${schedule.fellowship_cancel_reason}` : ' this week'}
-            </div>
-          )}
-          <p className="text-xs font-bold uppercase tracking-wider text-primary mb-0.5">{schedule.day_of_week}</p>
-          <h3 className="text-xl font-bold font-heading text-foreground">{schedule.service_name}</h3>
-          {schedule.speaker_name && (
-            <p className="text-sm text-muted-foreground mt-0.5">{schedule.speaker_name}</p>
-          )}
-          {schedule.description && (
-            <p className="mt-1 text-sm text-muted-foreground">{schedule.description}</p>
-          )}
+    <Link to="/activities">
+      <div className={`bg-card border rounded-xl px-5 py-4 flex items-center gap-4 hover:shadow-md transition-shadow duration-300 ${
+        isToday ? 'ring-2 ring-primary/20 border-primary/20' : 'border-border'
+      }`}>
+        <div className={`shrink-0 text-center w-16 ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+          <p className="text-xs font-medium leading-tight tracking-wide uppercase">
+            {isToday ? 'Today' : isTomorrow ? 'Tmrw' : format(event.nextDate, 'EEE')}
+          </p>
+          <p className="text-2xl font-bold leading-tight font-heading">{format(event.nextDate, 'd')}</p>
+          <p className="text-xs leading-tight">{format(event.nextDate, 'MMM')}</p>
+        </div>
 
-          {/* Meta + heart */}
-          <div className="flex flex-wrap items-center gap-3 mt-3">
-            <span className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Clock className="w-3.5 h-3.5" /> {schedule.time}
-            </span>
-            {schedule.location && (
-              <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                <MapPin className="w-3.5 h-3.5" /> {schedule.location}
-              </span>
-            )}
-            <HeartButton namespace="schedule" id={schedule.id} />
+        <div className="w-px h-12 bg-border shrink-0" />
+
+        <div className={`shrink-0 hidden sm:flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border capitalize ${color}`}>
+          <Activity className="w-3 h-3" /> {event.category || 'Activity'}
+        </div>
+
+        {event.cover_image && (
+          <div className="hidden w-12 h-12 overflow-hidden border rounded-lg shrink-0 border-border sm:block">
+            <img src={event.cover_image} alt={event.title} className="object-cover w-full h-full" />
           </div>
+        )}
 
-          {/* Note */}
-          {schedule.note && (
-            <div className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
-              <StickyNote className="w-3 h-3 mt-0.5 shrink-0" />
-              <span>{schedule.note}</span>
-            </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold leading-snug font-heading text-foreground">{event.title}</p>
+          {event.location && (
+            <p className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+              <MapPin className="w-3 h-3" />{event.location}
+            </p>
           )}
         </div>
 
-        {/* Right: faded cover image */}
-        {hasCover && (
-          <div className="relative overflow-hidden w-36 sm:w-48 shrink-0">
-            <img src={schedule.cover_image} alt="" className="absolute inset-0 object-cover w-full h-full" />
-            <div className="absolute inset-0 bg-gradient-to-r from-card via-card/30 to-transparent" />
-          </div>
+        {isToday && (
+          <span className="shrink-0 text-xs bg-primary text-primary-foreground px-2.5 py-1 rounded-full font-medium">Today</span>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -106,9 +106,11 @@ function CellgroupCard({ cg }) {
 }
 
 export default function WorshipSchedule() {
-  const { data: schedules = [], isLoading: loadingSchedules } = useQuery({
-    queryKey: ['worship-schedules'],
-    queryFn: () => worshipSchedulesService.listActive(),
+  const today = startOfDay(new Date());
+
+  const { data: activities = [], isLoading: loadingActivities } = useQuery({
+    queryKey: ['activities-schedule-page'],
+    queryFn: () => activitiesService.list(),
   });
 
   const { data: cellgroups = [], isLoading: loadingCellgroups } = useQuery({
@@ -116,9 +118,15 @@ export default function WorshipSchedule() {
     queryFn: () => cellgroupsService.list(),
   });
 
-  const sorted = [...schedules].sort((a, b) => DAY_ORDER.indexOf(a.day_of_week) - DAY_ORDER.indexOf(b.day_of_week));
+  const upcomingEvents = React.useMemo(() => {
+    return activities
+      .filter(a => a.date && !isBefore(startOfDay(new Date(a.date)), today))
+      .map(a => ({ ...a, nextDate: startOfDay(new Date(a.date)) }))
+      .sort((a, b) => a.nextDate - b.nextDate);
+  }, [activities, today]);
+
   const sortedCellgroups = [...cellgroups].sort((a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day));
-  const isLoading = loadingSchedules || loadingCellgroups;
+  const isLoading = loadingActivities || loadingCellgroups;
 
   return (
     <div className="min-h-screen px-4 pt-24 pb-16 sm:px-6">
@@ -133,17 +141,7 @@ export default function WorshipSchedule() {
           <div className="space-y-10">
             <div className="space-y-3">
               <Skeleton className="w-48 h-6" />
-              {[1,2].map(i => (
-                <div key={i} className="flex overflow-hidden border rounded-2xl border-border">
-                  <Skeleton className="flex-shrink-0 w-40 h-32" />
-                  <div className="flex-1 p-5 space-y-3">
-                    <Skeleton className="w-20 h-4" />
-                    <Skeleton className="w-1/2 h-6" />
-                    <Skeleton className="w-1/3 h-4" />
-                    <Skeleton className="w-2/3 h-4" />
-                  </div>
-                </div>
-              ))}
+              {[1,2].map(i => <Skeleton key={i} className="w-full h-20 rounded-xl" />)}
             </div>
             <div className="border-t border-border" />
             <div className="space-y-3">
@@ -162,12 +160,22 @@ export default function WorshipSchedule() {
             <section>
               <h2 className="flex items-center gap-2 mb-4 text-lg font-bold font-heading text-foreground">
                 <span className="inline-block w-1 h-5 rounded-full bg-primary" />
-                Worship Schedule
+                Upcoming Events
               </h2>
-              {sorted.length === 0
-                ? <p className="text-sm text-muted-foreground">No worship schedules available.</p>
-                : <div className="flex flex-col gap-3">{sorted.map(s => <ScheduleCard key={s.id} schedule={s} />)}</div>
-              }
+              {upcomingEvents.length === 0 ? (
+                <div className="py-10 text-center text-muted-foreground">
+                  <Calendar className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">No upcoming events right now.</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {upcomingEvents.map(event => (
+                    <EventCard key={event.id} event={event}
+                      isToday={isSameDay(event.nextDate, today)}
+                      isTomorrow={isSameDay(event.nextDate, addDays(today, 1))} />
+                  ))}
+                </div>
+              )}
             </section>
 
             <div className="border-t border-border" />

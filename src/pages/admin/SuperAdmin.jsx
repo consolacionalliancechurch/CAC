@@ -1,11 +1,10 @@
 ﻿import React, { useState } from 'react';
-import { Shield, Sun, Activity, Heart, BookOpen, Users, CalendarDays, Video, UserCircle, GitBranch, Home, ImageIcon, Phone, IdCard } from 'lucide-react';
+import { Shield, Sun, Activity, Heart, BookOpen, Users, Video, UserCircle, GitBranch, Home, ImageIcon, Phone, IdCard } from 'lucide-react';
 import SundayServiceAdmin from '@/components/admin/SundayServiceAdmin';
 import ActivitiesAdmin from '@/components/admin/ActivitiesAdmin';
 import CelebrationsAdmin from '@/components/admin/CelebrationsAdmin';
 import SermonsAdmin from '@/components/admin/SermonsAdmin';
 import PrayerRequestsAdmin from '@/components/admin/PrayerRequestsAdmin';
-import WorshipScheduleAdmin from '@/components/admin/WorshipScheduleAdmin';
 import VlogsAdmin from '@/components/admin/VlogsAdmin';
 import PastorsAdmin from '@/components/admin/PastorsAdmin';
 import OrgChartAdmin from '@/components/admin/OrgChartAdmin';
@@ -17,7 +16,6 @@ import MembersAdmin from '@/components/admin/MembersAdmin';
 const TABS = [
   { value: 'sunday',       label: 'Sunday Service',  icon: Sun },
   { value: 'sermons',      label: 'Sermons',          icon: BookOpen },
-  { value: 'schedule',     label: 'Schedule',         icon: CalendarDays },
   { value: 'activities',   label: 'Activities',       icon: Activity },
   { value: 'celebrations', label: 'Celebrations',     icon: Heart },
   { value: 'vlogs',        label: 'Vlogs',            icon: Video },
@@ -64,7 +62,6 @@ export default function SuperAdmin() {
         <div>
           {active === 'sunday'       && <SundayServiceAdmin />}
           {active === 'sermons'      && <SermonsAdmin />}
-          {active === 'schedule'     && <WorshipScheduleAdmin />}
           {active === 'activities'   && <ActivitiesAdmin />}
           {active === 'celebrations' && <CelebrationsAdmin />}
           {active === 'vlogs'        && <VlogsAdmin />}
