@@ -148,7 +148,7 @@ function VlogModal({ open, onClose, title, form, onChange, onSave, isSaving }) {
         <div className="py-2 space-y-4">
           {/* Title */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Vlog Title <span className="text-red-500">*</span></label>
+            <label className="text-sm font-medium">Blog Title <span className="text-red-500">*</span></label>
             <input type="text" value={form.title || ''} onChange={e => onChange('title', e.target.value)}
               placeholder="e.g. Youth Camp 2025 Highlights"
               className="w-full px-3 py-2 text-sm border rounded-lg border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring" />
@@ -175,7 +175,7 @@ function VlogModal({ open, onClose, title, form, onChange, onSave, isSaving }) {
           <div className="space-y-1.5">
             <label className="text-sm font-medium">Description</label>
             <textarea value={form.description || ''} onChange={e => onChange('description', e.target.value)}
-              placeholder="What is this vlog about?"
+              placeholder="What is this blog about?"
               rows={3}
               className="w-full px-3 py-2 text-sm border rounded-lg resize-none border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring" />
           </div>
@@ -261,7 +261,7 @@ export default function VlogsAdmin() {
 
   return (
     <>
-      <AdminTable title="Vlogs" columns={COLUMNS} data={data} isLoading={isLoading}
+      <AdminTable title="Blogs" columns={COLUMNS} data={data} isLoading={isLoading}
         onAdd={openAdd} onEdit={openEdit} onDelete={setDeleteTarget} />
 
       <VlogModal

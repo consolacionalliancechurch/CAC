@@ -18,7 +18,7 @@ const TABS = [
   { value: 'sermons',      label: 'Sermons',          icon: BookOpen },
   { value: 'activities',   label: 'Activities',       icon: Activity },
   { value: 'celebrations', label: 'Celebrations',     icon: Heart },
-  { value: 'vlogs',        label: 'Vlogs',            icon: Video },
+  { value: 'Blogs',        label: 'Blogs',            icon: Video },
   { value: 'cellgroups',   label: 'Cellgroups',       icon: Home },
   { value: 'prayer',       label: 'Prayer Requests',  icon: Users },
   { value: 'pastors',      label: 'Pastors',          icon: UserCircle },
@@ -64,7 +64,7 @@ export default function SuperAdmin() {
           {active === 'sermons'      && <SermonsAdmin />}
           {active === 'activities'   && <ActivitiesAdmin />}
           {active === 'celebrations' && <CelebrationsAdmin />}
-          {active === 'vlogs'        && <VlogsAdmin />}
+          {active === 'Blogs'        && <VlogsAdmin />}
           {active === 'cellgroups'   && <CellgroupsAdmin />}
           {active === 'prayer'       && <PrayerRequestsAdmin />}
           {active === 'pastors'      && <PastorsAdmin />}

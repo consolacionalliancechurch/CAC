@@ -156,7 +156,7 @@ export default function Vlogs() {
       <div className="max-w-6xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
           <p className="mb-2 text-xs font-semibold tracking-widest uppercase text-primary">Church Media</p>
-          <h1 className="mb-4 text-4xl font-bold font-heading sm:text-5xl text-foreground">Vlogs</h1>
+          <h1 className="mb-4 text-4xl font-bold font-heading sm:text-5xl text-foreground">Blogs</h1>
           <p className="max-w-2xl text-lg text-muted-foreground">Stories, testimonies, and moments from our church family — captured and shared for God's glory.</p>
         </motion.div>
 
